@@ -1,0 +1,1 @@
+sh: /Users/abhijeetkumar/Desktop/portfolio/node_modules/.bin/vite: Permission denied
