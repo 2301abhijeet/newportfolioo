@@ -70,9 +70,7 @@ export default function HeroSection() {
         let currentFrameIndex = 0;
 
         const sequences = [
-            { name: "s1", frameCount: 192, sectionId: "#section-1" },
-            { name: "s2", frameCount: 192, sectionId: "#section-2" },
-            { name: "s3", frameCount: 192, sectionId: "#section-3" },
+            { name: "s1", frameCount: 177, sectionId: "#section-1" },
         ];
 
         const allImages: HTMLImageElement[][] = [];
@@ -82,15 +80,9 @@ export default function HeroSection() {
 
             for (let i = 1; i <= seq.frameCount; i++) {
                 const img = new Image();
-
                 if (seq.name === "s1") {
-                    img.src = `https://ik.imagekit.io/c1bhqzfr6w/ezgif-split%20(3)/frame_${formatFrameNumber(i - 1, 3)}_delay-0.041s.png?updatedAt=1773466083563`;
-                } else if (seq.name === "s2") {
-                    img.src = `https://ik.imagekit.io/c1bhqzfr6w/ezgif-split%20(4)/frame_${formatFrameNumber(i - 1, 3)}_delay-0.041s.png?updatedAt=1773466475244`;
-                } else if (seq.name === "s3") {
-                    img.src = `https://ik.imagekit.io/c1bhqzfr6w/ezgif-split%20(5)/frame_${formatFrameNumber(i - 1, 3)}_delay-0.041s.png?updatedAt=1773487706261`;
+                    img.src = `https://ik.imagekit.io/c1bhqzfr6w/portnew/frame_${formatFrameNumber(i + 14, 3)}_delay-0.041s.png`;
                 }
-
                 images.push(img);
             }
 
@@ -183,20 +175,11 @@ export default function HeroSection() {
                     <h2>Hello!, I am Abhijeet</h2>
                     <p>Welcome to my portfolio. Scroll down to explore my journey and work.</p>
                 </div>
-                <div className="text-container fixed-text" id="text-2">
-                    <h2>Hello!, I am Abhijeet</h2>
-                    <p>Welcome to my portfolio. Scroll down to explore my journey and work.</p>
-                </div>
-                <div className="text-container fixed-text" id="text-3">
-                    <h2>Hello!, I am Abhijeet</h2>
-                    <p>Welcome to my portfolio. Scroll down to explore my journey and work.</p>
-                </div>
+
             </div>
 
             <main className="scroll-content">
                 <section className="sequence-section" id="section-1"></section>
-                <section className="sequence-section" id="section-2"></section>
-                <section className="sequence-section" id="section-3"></section>
             </main>
 
             <StartProjectCTA />
