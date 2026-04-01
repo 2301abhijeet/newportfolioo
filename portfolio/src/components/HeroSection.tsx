@@ -1,188 +1,85 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
-import Lenis from "@studio-freight/lenis";
 import StartProjectCTA from "./StartProjectCTA";
-import "./HeroSection.css"; // We'll move the vanilla CSS here
+import "./HeroSection.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
-function formatFrameNumber(number: number, length: number) {
-    let str = "" + number;
-    while (str.length < length) str = "0" + str;
-    return str;
-}
+export default function HeroSection() {
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-function drawImageProp(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number = 0, y: number = 0, w: number = ctx.canvas.width, h: number = ctx.canvas.height, offsetX: number = 0.5, offsetY: number = 0.5) {
-    if (arguments.length === 2) {
-        x = y = 0;
-        w = ctx.canvas.width;
-        h = ctx.canvas.height;
+  useEffect(() => {
+    const video = videoRef.current!;
+
+    // 🔥 IMPORTANT: Pause video (we control manually)
+    video.pause();
+
+    const setupScroll = () => {
+      const duration = video.duration;
+
+      gsap.to({}, {
+        scrollTrigger: {
+          trigger: "#section-1",
+          start: "top top",
+          end: "bottom top",
+          scrub: 1, // smooth scroll
+          onUpdate: (self) => {
+            if (video.readyState >= 2) {
+              video.currentTime = self.progress * duration;
+            }
+          }
+        }
+      });
+    };
+
+    // Wait for metadata
+    if (video.readyState >= 1) {
+      setupScroll();
+    } else {
+      video.addEventListener("loadedmetadata", setupScroll);
     }
 
-    let iw = img.width,
-        ih = img.height,
-        r = Math.min(w / iw, h / ih),
-        nw = iw * r,
-        nh = ih * r,
-        cx = 1,
-        cy = 1,
-        cw = 1,
-        ch = 1,
-        ar = 1;
+    return () => {
+      ScrollTrigger.getAll().forEach((t) => t.kill());
+    };
+  }, []);
 
-    if (nw < w) ar = w / nw;
-    if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh;
-    nw *= ar;
-    nh *= ar;
+  return (
+    <div className="hero-container">
 
-    cw = iw / (nw / w);
-    ch = ih / (nh / h);
+      {/* 🎬 VIDEO SECTION */}
+      <div className="video-container">
+        <video
+          ref={videoRef}
+          className="hero-video"
+          muted
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+        >
+          {/* 🔥 Replace with your ImageKit URL */}
+          <source
+            src="https://ik.imagekit.io/rajaproject/abhijeet-portfolio/output.mp4"
+            type="video/mp4"
+          />
+        </video>
+      </div>
 
-    cx = (iw - cw) * offsetX;
-    cy = (ih - ch) * offsetY;
-
-    if (cx < 0) cx = 0;
-    if (cy < 0) cy = 0;
-    if (cw > iw) cw = iw;
-    if (ch > ih) ch = ih;
-
-    ctx.clearRect(x, y, w, h);
-    ctx.drawImage(img, cx, cy, cw, ch, x, y, w, h);
-}
-
-export default function HeroSection() {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    useEffect(() => {
-        const lenis = new Lenis();
-        function raf(time: number) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
-        requestAnimationFrame(raf);
-
-        const canvas = canvasRef.current!;
-        const context = canvas.getContext("2d")!;
-
-        let currentSeqIndex = 0;
-        let currentFrameIndex = 0;
-
-        const sequences = [
-            { name: "s1", frameCount: 177, sectionId: "#section-1" },
-        ];
-
-        const allImages: HTMLImageElement[][] = [];
-
-        sequences.forEach((seq) => {
-            const images: HTMLImageElement[] = [];
-
-            for (let i = 1; i <= seq.frameCount; i++) {
-                const img = new Image();
-                if (seq.name === "s1") {
-                    img.src = `https://ik.imagekit.io/c1bhqzfr6w/portnew/frame_${formatFrameNumber(i + 14, 3)}_delay-0.041s.png`;
-                }
-                images.push(img);
-            }
-
-            allImages.push(images);
-        });
-
-        const render = () => {
-            if (!allImages[currentSeqIndex]) return;
-            const img = allImages[currentSeqIndex][currentFrameIndex];
-            if (img && img.complete) {
-                drawImageProp(context, img);
-            } else if (img) {
-                img.onload = render;
-            }
-        };
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            render();
-        }
-
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
-
-        if (allImages[0] && allImages[0][0]) {
-            if (allImages[0][0].complete) {
-                render();
-            } else {
-                allImages[0][0].onload = render;
-            }
-        }
-
-        const triggers: ScrollTrigger[] = [];
-
-        sequences.forEach((seq, index) => {
-            const obj = { frame: 0 };
-            const trigger = gsap.to(obj, {
-                frame: seq.frameCount - 1,
-                snap: "frame",
-                ease: "none",
-                scrollTrigger: {
-                    trigger: seq.sectionId,
-                    start: "top top",
-                    end: "bottom top",
-                    scrub: 0.5,
-                    onUpdate: () => {
-                        currentSeqIndex = index;
-                        currentFrameIndex = Math.round(obj.frame);
-                        render();
-                    },
-                },
-            });
-            if (trigger.scrollTrigger) triggers.push(trigger.scrollTrigger);
-        });
-
-        gsap.set("#text-1", { opacity: 1 });
-
-        sequences.forEach((seq, index) => {
-            const trigger = ScrollTrigger.create({
-                trigger: seq.sectionId,
-                start: "top 60%",
-                end: "bottom 60%",
-                onEnter: () => gsap.to(`#text-${index + 1}`, { opacity: 1, duration: 1, ease: "power2.out" }),
-                onLeave: () => gsap.to(`#text-${index + 1}`, { opacity: 0, duration: 1, ease: "power2.out" }),
-                onEnterBack: () => gsap.to(`#text-${index + 1}`, { opacity: 1, duration: 1, ease: "power2.out" }),
-                onLeaveBack: () => {
-                    if (index !== 0) gsap.to(`#text-${index + 1}`, { opacity: 0, duration: 1, ease: "power2.out" });
-                },
-            });
-            triggers.push(trigger);
-        });
-
-        return () => {
-            window.removeEventListener("resize", resizeCanvas);
-            lenis.destroy();
-            triggers.forEach(t => t.kill());
-            ScrollTrigger.getAll().forEach(t => t.kill());
-        };
-    }, []);
-
-    return (
-        <div ref={containerRef} className="hero-container">
-            <div className="canvas-container relative h-[auto]">
-                <canvas ref={canvasRef} id="hero-canvas"></canvas>
-            </div>
-
-            <div className="fixed-text-container">
-                <div className="text-container fixed-text" id="text-1">
-                    <h2>Hello!, I am Abhijeet</h2>
-                    <p>Welcome to my portfolio. Scroll down to explore my journey and work.</p>
-                </div>
-
-            </div>
-
-            <main className="scroll-content">
-                <section className="sequence-section" id="section-1"></section>
-            </main>
-
-            <StartProjectCTA />
+      {/* 📝 TEXT OVERLAY */}
+      <div className="fixed-text-container">
+        <div className="text-container" id="text-1">
+          <h2>Hello!, I am Abhijeet</h2>
+          <p>Scroll to control the animation</p>
         </div>
-    );
+      </div>
+
+      {/* 📜 SCROLL AREA */}
+      <main>
+        <section id="section-1" className="sequence-section"></section>
+      </main>
+
+      <StartProjectCTA />
+    </div>
+  );
 }
